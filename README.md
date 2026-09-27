@@ -26,6 +26,8 @@ dots.tts achieves the best average performance on **Seed-TTS-Eval**, with WERs o
 
 ### News
 
+* **[2026.09]** 🔥 Released **doteBench V1.0**, an XML-first bilingual benchmark for precise speech editing. Its 2,081 English and Chinese cases cover text, emotion, prosody, pause, and compositional edits, evaluating instruction following, local preservation, and audio quality. [Code](https://github.com/studio-dots-ai/doteBench) · [Release](https://github.com/studio-dots-ai/doteBench/releases/tag/v1.0.0).
+
 * **[2026.08]** 🔥 We have released **dots.tts.edit** for precise, instruction-controlled speech editing — download the [checkpoint](https://huggingface.co/dots-studio/dots.tts.edit), try the [Playground](https://dots-studio-dots-tts-edit.hf.space/), explore the [Demo Page](https://dots-studio-dots-tts-edit-demo.static.hf.space), and read the [paper](https://arxiv.org/abs/2608.02673).
 
 * **[2026.08]** ⚡ Released `dots.tts-mf-2steps`, `dots.tts-mf-1step`, and `dots.tts-mf-2steps-stts` for high-quality voice cloning and double-streaming TTS. These checkpoints build on `dots.tts-mf` with fixed-step train–inference alignment. See [Checkpoints](#checkpoints).
