@@ -18,6 +18,7 @@
   <a href="https://arxiv.org/abs/2608.02673"><img src="https://img.shields.io/badge/Report-Edit-b31b1b?logo=arxiv&logoColor=white" alt="Edit Report"></a>
   <a href="https://dots-studio-dots-tts-edit.hf.space/"><img src="https://img.shields.io/badge/Playground-Edit-orange" alt="Edit Playground"></a>
   <a href="https://dots-studio-dots-tts-edit-demo.static.hf.space"><img src="https://img.shields.io/badge/Demo%20Page-Edit-red" alt="Edit Demo Page"></a>
+  <a href="https://github.com/studio-dots-ai/doteBench"><img src="https://img.shields.io/badge/Benchmark-Edit-blue?logo=github" alt="Edit Benchmark"></a>
 </p>
 
 **dots.tts** is a **2B-parameter fully continuous, end-to-end autoregressive (AR) text-to-speech system**. The backbone pairs a semantic encoder, an LLM, and an autoregressive flow-matching acoustic head over a **48 kHz** AudioVAE, with no discrete tokens anywhere in the pipeline.
