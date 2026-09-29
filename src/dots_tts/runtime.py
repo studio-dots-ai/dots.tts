@@ -61,7 +61,7 @@ class DotsTtsRuntime:
     def _check_torch_env(precision: str) -> None:
         import warnings
 
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() or torch.backends.mps.is_available():
             return
         msg = (
             f"CUDA is not available; torch will run on CPU. "
@@ -94,6 +94,8 @@ class DotsTtsRuntime:
         self.precision = precision
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            self.device = torch.device("mps")
         else:
             self.device = torch.device("cpu")
             torch.set_num_threads(1)
