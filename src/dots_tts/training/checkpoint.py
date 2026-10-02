@@ -70,7 +70,7 @@ def _rng_state() -> dict:
     }
     if torch.cuda.is_available():
         state["cuda"] = torch.cuda.get_rng_state_all()
-    if hasattr(torch, "xpu") and torch.xpu.is_available():
+    if torch.xpu.is_available():
         state["xpu"] = torch.xpu.get_rng_state_all()
     return state
 
@@ -91,7 +91,7 @@ def _restore_rng_state(state: dict) -> None:
     )
     if torch.cuda.is_available() and "cuda" in state:
         torch.cuda.set_rng_state_all(state["cuda"])
-    if hasattr(torch, "xpu") and torch.xpu.is_available() and "xpu" in state:
+    if torch.xpu.is_available() and "xpu" in state:
         torch.xpu.set_rng_state_all(state["xpu"])
 
 

@@ -4,7 +4,7 @@ import torch
 
 
 def xpu_available() -> bool:
-    return hasattr(torch, "xpu") and torch.xpu.is_available()
+    return torch.xpu.is_available()
 
 
 def resolve_device(device: str | torch.device | None = None) -> torch.device:
