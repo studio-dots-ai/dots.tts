@@ -130,7 +130,7 @@ class VocoderInference:
         use_compiled: bool = True,
     ) -> torch.Tensor:
         latents = latent_patch.transpose(1, 2)
-        if not optimize or not use_compiled or latents.device.type != "cuda":
+        if not optimize or not use_compiled:
             with measure_inference("vocoder", phase="stream", step=profile_step):
                 return self._stream_step_eager(latents, stream_state)
 

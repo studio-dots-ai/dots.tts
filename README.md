@@ -117,24 +117,27 @@ pip install -e .
 These commands let pip select matching XPU wheel versions. To use
 `constraints/recommended.txt`, install XPU wheels matching its pinned
 PyTorch and torchaudio versions instead. The runtime automatically selects
-CUDA, then XPU, then CPU. You can select an Intel GPU explicitly:
+CUDA, then XPU, then CPU:
 
 ```bash
 dots.tts \
   --model-name-or-path dots-studio/dots.tts-mf \
-  --device xpu \
   --precision bfloat16 \
   --text "Hello, this is speech generated on an Intel GPU." \
   --output output.wav
 ```
 
+To select an Intel GPU explicitly, pass `--device xpu` to the CLI.
 The Python API accepts `device="xpu"` or `device="xpu:0"` in
 `DotsTtsRuntime.from_pretrained()`, `DotsTtsEditRuntime.from_pretrained()`,
 and `DotsTtsRuntimeDoubleStreaming.from_pretrained()`. Editing and streaming
 also use XPU automatically when CUDA is unavailable. The speaker encoder
 and vocoder remain in float32 while the core uses the requested precision.
-On XPU, `optimize=True` uses the existing cache paths with SDPA attention and
-eager execution; CUDA compilation and Flex attention remain CUDA-only.
+On XPU, `optimize=True` enables the existing cache and `torch.compile` paths,
+including compiled streaming vocoder steps. Optimized flow-matching DiT
+attention uses Flex attention by default; sCM keeps its SDPA default and
+also accepts Flex attention. Set `DOTS_TTS_DELAYED_DIT_BACKEND=sdpa` or
+`flex` to select the cached DiT attention backend explicitly.
 
 To use SGLang Omni for high-performance high-concurrency voice cloning:
 

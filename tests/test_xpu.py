@@ -14,8 +14,18 @@ from torch import nn
 from dots_tts.edit_runtime import DotsTtsEditRuntime
 from dots_tts.models.dots_tts.edit_model import DotsTtsEditModel
 from dots_tts.models.dots_tts.model import DotsTtsModel
-from dots_tts.modules.backbone.layers import MultiHeadAttention, RotaryEmbedding
+from dots_tts.modules.backbone.dit_inference import (
+    CachedDiTRunner,
+    _resolve_kv_attention_backend,
+)
+from dots_tts.modules.backbone.inference_utils import compile_module_forward
+from dots_tts.modules.backbone.layers import (
+    MultiHeadAttention,
+    RotaryEmbedding,
+    _compiled_block_mask_flex_attention,
+)
 from dots_tts.modules.vocoder.bigvgan import AudioVAE
+from dots_tts.modules.vocoder.config import AudioVAEConfig
 from dots_tts.modules.vocoder.vocoder_inference import VocoderInference
 from dots_tts.runtime import DotsTtsRuntime
 from dots_tts.runtime_double_streaming import DotsTtsRuntimeDoubleStreaming
@@ -63,6 +73,35 @@ class TestDeviceSelection(unittest.TestCase):
             InferenceProfiler(torch.device("xpu:0"))._sync()
             synchronize.assert_called_once_with(torch.device("xpu:0"))
 
+    def test_flex_backend_selection(self):
+        with patch.dict("os.environ", {}, clear=True):
+            for device_type in ("cuda", "xpu"):
+                self.assertEqual(
+                    _resolve_kv_attention_backend(
+                        optimize=True, device_type=device_type
+                    ),
+                    "flex",
+                )
+            self.assertEqual(
+                _resolve_kv_attention_backend(optimize=True, device_type="cpu"),
+                "sdpa",
+            )
+            self.assertEqual(
+                _resolve_kv_attention_backend(
+                    optimize=True, device_type="xpu", default_backend="sdpa"
+                ),
+                "sdpa",
+            )
+        with patch.dict("os.environ", {"DOTS_TTS_DELAYED_DIT_BACKEND": "flex"}):
+            self.assertEqual(
+                _resolve_kv_attention_backend(
+                    optimize=True, device_type="xpu", default_backend="sdpa"
+                ),
+                "flex",
+            )
+            with self.assertRaisesRegex(ValueError, "requires CUDA or XPU"):
+                _resolve_kv_attention_backend(optimize=True, device_type="cpu")
+
 
 class _SmallRuntimeModel(nn.Module):
     def __init__(self):
@@ -107,6 +146,11 @@ class TestXpuOperators(unittest.TestCase):
             output = runtime.model.core(torch.ones(1, 4, device="xpu"))
         self.assertTrue(torch.isfinite(output).all())
 
+    def test_optimized_runtime_warms_up_xpu(self):
+        with patch.object(DotsTtsRuntime, "run_warmup") as warmup:
+            DotsTtsRuntime(_SmallRuntimeModel(), Path("."), device="xpu", optimize=True)
+        warmup.assert_called_once()
+
     def test_pretrained_apis_forward_device(self):
         for runtime_type, model_type in (
             (DotsTtsRuntime, DotsTtsModel),
@@ -139,8 +183,36 @@ class TestXpuOperators(unittest.TestCase):
             with torch.autocast("xpu", dtype=torch.bfloat16):
                 actual = attention(inputs.to("xpu"), mask=mask.to("xpu"))
                 positions = RotaryEmbedding(8).to("xpu")(torch.arange(8, device="xpu"))
+                compiled = compile_module_forward(attention)
+                compiled_output = compiled(inputs.to("xpu"), mask=mask.to("xpu"))
         self.assertEqual(positions.dtype, torch.float32)
         torch.testing.assert_close(actual.float().cpu(), expected, atol=0.01, rtol=0.05)
+        torch.testing.assert_close(compiled_output, actual, atol=0.01, rtol=0.05)
+
+    def test_cached_dit_flex_matches_sdpa(self):
+        runner = CachedDiTRunner.__new__(CachedDiTRunner)
+        runner.capacity_tokens = 128
+        runner.unit_len = 4
+        runner.block_mask_size = 64
+        runner.device = torch.device("xpu")
+        q = torch.randn(1, 2, 8, 64, device="xpu", dtype=torch.bfloat16)
+        k = torch.randn(1, 2, 136, 64, device="xpu", dtype=torch.bfloat16)
+        v = torch.randn_like(k)
+        with torch.no_grad():
+            # Exercise partially filled prefixes and the previous/current patch
+            # masks used during incremental KV-cache decoding.
+            for prefix_len in (0, 63, 128):
+                runner.attn_backend = "flex"
+                runner._mask_cache = {}
+                flex_mask, _ = runner.masks_for(valid_persistent_tokens=prefix_len)
+                actual = _compiled_block_mask_flex_attention(q, k, v, flex_mask)
+                runner.attn_backend = "sdpa"
+                runner._mask_cache = {}
+                _, sdpa_mask = runner.masks_for(valid_persistent_tokens=prefix_len)
+                expected = torch.nn.functional.scaled_dot_product_attention(
+                    q, k, v, attn_mask=sdpa_mask
+                )
+                torch.testing.assert_close(actual, expected, atol=0.02, rtol=0.02)
 
     def test_vocoder_disables_xpu_autocast(self):
         vocoder = _SmallAudioVAE().to("xpu").eval()
@@ -154,7 +226,7 @@ class TestXpuOperators(unittest.TestCase):
             self.assertEqual(output.dtype, torch.float32)
             self.assertTrue(torch.isfinite(output).all())
 
-    def test_optimized_vocoder_uses_eager_xpu_path(self):
+    def test_vocoder_can_disable_compilation(self):
         adapter = VocoderInference(_SmallAudioVAE().to("xpu").eval())
         expected = torch.ones(1, 16, device="xpu")
         with (
@@ -165,10 +237,44 @@ class TestXpuOperators(unittest.TestCase):
                 torch.randn(1, 2, 4, device="xpu"),
                 SimpleNamespace(),
                 optimize=True,
+                use_compiled=False,
             )
         self.assertIs(actual, expected)
         eager.assert_called_once()
         compiled.assert_not_called()
+
+    def test_compiled_vocoder_stream_matches_eager(self):
+        config = AudioVAEConfig(
+            latent_dim=4,
+            causal=True,
+            mi_num_layers=1,
+            downsample_rates=[2, 2],
+            downsample_channels=[4, 8, 16],
+            upsample_rates=[2, 2],
+            upsample_kernel_sizes=[4, 4],
+            upsample_initial_channel=16,
+            resblock_kernel_sizes=[3],
+            resblock_dilation_sizes=[[1, 1, 1]],
+        )
+        vocoder = AudioVAE(config).eval()
+        vocoder.remove_weight_norm()
+        adapter = VocoderInference(vocoder.to("xpu"))
+        eager_state = adapter.init_stream_state(chunk_size=4)
+        compiled_state = adapter.init_stream_state(chunk_size=4)
+        for _ in range(3):
+            latent_patch = torch.randn(1, 4, 4, device="xpu")
+            expected = adapter.stream_step(
+                latent_patch, eager_state, optimize=True, use_compiled=False
+            )
+            actual = adapter.stream_step(latent_patch, compiled_state, optimize=True)
+            torch.testing.assert_close(actual, expected, atol=1e-5, rtol=1e-4)
+        torch.testing.assert_close(
+            adapter.flush(compiled_state),
+            adapter.flush(eager_state),
+            atol=1e-5,
+            rtol=1e-4,
+        )
+        self.assertTrue(adapter._compiled_stream_steps)
 
     def test_seed_and_checkpoint_restore_xpu_rng(self):
         seed_everything(123)

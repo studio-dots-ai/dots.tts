@@ -141,7 +141,7 @@ class DotsTtsRuntime:
             self.max_sequence_length,
             self.vocoder_merge_steps,
         )
-        if warmup_on_optimize and self.optimize and self.device.type == "cuda":
+        if warmup_on_optimize and self.optimize and self.device.type in {"cuda", "xpu"}:
             self.run_warmup()
 
     @classmethod

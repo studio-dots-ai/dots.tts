@@ -628,7 +628,7 @@ class SemanticEncoderInference:
             state.seq_len = dynamic_state.seq_len
             state.static = False
         start_pos = int(state.seq_len)
-        compile_step = bool(optimize and latent_patch.device.type == "cuda")
+        compile_step = bool(optimize and latent_patch.device.type in {"cuda", "xpu"})
         program = (
             self._get_decode_program(state, compile_step=compile_step)
             if optimize
