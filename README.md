@@ -104,6 +104,38 @@ pip install -e .[full] -c constraints/recommended.txt
 The `constraints/recommended.txt` file pins the reproducible versions;
 `pyproject.toml` declares compatibility ranges.
 
+#### Intel GPU (XPU)
+
+Install matching PyTorch and torchaudio wheels with XPU support in a fresh
+Python 3.10–3.12 environment with an Intel GPU driver:
+
+```bash
+pip install torch torchaudio --index-url https://download.pytorch.org/whl/xpu
+pip install -e .
+```
+
+These commands let pip select matching XPU wheel versions. To use
+`constraints/recommended.txt`, install XPU wheels matching its pinned
+PyTorch and torchaudio versions instead. The runtime automatically selects
+CUDA, then XPU, then CPU. You can select an Intel GPU explicitly:
+
+```bash
+dots.tts \
+  --model-name-or-path dots-studio/dots.tts-mf \
+  --device xpu \
+  --precision bfloat16 \
+  --text "Hello, this is speech generated on an Intel GPU." \
+  --output output.wav
+```
+
+The Python API accepts `device="xpu"` or `device="xpu:0"` in
+`DotsTtsRuntime.from_pretrained()`, `DotsTtsEditRuntime.from_pretrained()`,
+and `DotsTtsRuntimeDoubleStreaming.from_pretrained()`. Editing and streaming
+also use XPU automatically when CUDA is unavailable. The speaker encoder
+and vocoder remain in float32 while the core uses the requested precision.
+On XPU, `optimize=True` uses the existing cache paths with SDPA attention and
+eager execution; CUDA compilation and Flex attention remain CUDA-only.
+
 To use SGLang Omni for high-performance high-concurrency voice cloning:
 
 ```bash

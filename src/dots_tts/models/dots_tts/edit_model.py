@@ -499,7 +499,10 @@ class DotsTtsEditModel(DotsTtsModel):
 
         dtype = get_dtype(precision)
         device = next(self.core.parameters()).device
-        use_amp = device.type == "cuda" and dtype in {torch.float16, torch.bfloat16}
+        use_amp = device.type in {"cuda", "xpu"} and dtype in {
+            torch.float16,
+            torch.bfloat16,
+        }
         with torch.autocast(device_type=device.type, dtype=dtype, enabled=use_amp):
             generation_schedule: torch.Tensor = data["generation_schedule"]
             if generation_schedule.size(0) != 1:

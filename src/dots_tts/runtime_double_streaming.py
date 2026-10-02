@@ -210,7 +210,7 @@ class DoubleStreamingSession:
         )
 
         self._dtype = get_dtype(runtime.precision)
-        self._use_amp = self.device.type == "cuda" and self._dtype in {
+        self._use_amp = self.device.type in {"cuda", "xpu"} and self._dtype in {
             torch.float16,
             torch.bfloat16,
         }

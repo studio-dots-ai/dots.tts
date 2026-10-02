@@ -21,13 +21,15 @@ def _check_torch_install() -> None:
         return
 
     _install_hint = (
-        "Each torch minor release only ships wheels for a fixed set of CUDA "
-        "versions. Pick a torch + torchaudio combo that matches your system "
-        "CUDA from the PyTorch install matrix and reinstall both together: "
+        "Install matching torch + torchaudio versions for your CPU, CUDA, "
+        "or Intel XPU device using the PyTorch install matrix: "
         "https://pytorch.org/get-started/locally/\n"
         "e.g. for CUDA 12.8:\n"
         "  pip install torch==2.8.0 torchaudio==2.8.0 "
-        "--index-url https://download.pytorch.org/whl/cu128"
+        "--index-url https://download.pytorch.org/whl/cu128\n"
+        "For Intel XPU:\n"
+        "  pip install torch torchaudio "
+        "--index-url https://download.pytorch.org/whl/xpu"
     )
 
     torch_minor = tuple(torch_version.split("+")[0].split(".")[:2])

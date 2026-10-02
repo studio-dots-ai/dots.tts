@@ -231,7 +231,7 @@ class DotsTtsModel(nn.Module):
         device: torch.device,
         dtype: torch.dtype,
     ) -> _GenerateState:
-        state_dtype = dtype if device.type == "cuda" else torch.float32
+        state_dtype = dtype if device.type in {"cuda", "xpu"} else torch.float32
         requested_audio_patch_count = int(max_audio_patch_count)
         if requested_audio_patch_count <= 0:
             raise ValueError("max_audio_patch_count must be positive.")
@@ -1382,7 +1382,10 @@ class DotsTtsModel(nn.Module):
     ) -> Iterator[torch.Tensor]:
         dtype = get_dtype(precision)
         device = next(self.core.parameters()).device
-        use_amp = device.type == "cuda" and dtype in {torch.float16, torch.bfloat16}
+        use_amp = device.type in {"cuda", "xpu"} and dtype in {
+            torch.float16,
+            torch.bfloat16,
+        }
         with torch.autocast(device_type=device.type, dtype=dtype, enabled=use_amp):
             generation_schedule: torch.Tensor = data["generation_schedule"]
             if generation_schedule.size(0) != 1:

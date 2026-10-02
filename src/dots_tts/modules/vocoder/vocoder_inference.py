@@ -48,6 +48,7 @@ class VocoderInference:
 
     @torch.no_grad()
     @torch.autocast(enabled=False, device_type="cuda")
+    @torch.autocast(enabled=False, device_type="xpu")
     def extract_latents(
         self,
         x: torch.Tensor,
@@ -71,6 +72,7 @@ class VocoderInference:
 
     @torch.no_grad()
     @torch.autocast(enabled=False, device_type="cuda")
+    @torch.autocast(enabled=False, device_type="xpu")
     def decode_latents(self, latents: torch.Tensor) -> torch.Tensor:
         with measure_inference("latent_decoder", phase="batch_decode"):
             x = latents.transpose(1, 2).float()
@@ -117,6 +119,7 @@ class VocoderInference:
 
     @torch.no_grad()
     @torch.autocast(enabled=False, device_type="cuda")
+    @torch.autocast(enabled=False, device_type="xpu")
     def stream_step(
         self,
         latent_patch: torch.Tensor,
@@ -127,7 +130,7 @@ class VocoderInference:
         use_compiled: bool = True,
     ) -> torch.Tensor:
         latents = latent_patch.transpose(1, 2)
-        if not optimize or not use_compiled:
+        if not optimize or not use_compiled or latents.device.type != "cuda":
             with measure_inference("vocoder", phase="stream", step=profile_step):
                 return self._stream_step_eager(latents, stream_state)
 
@@ -160,6 +163,7 @@ class VocoderInference:
 
     @torch.no_grad()
     @torch.autocast(enabled=False, device_type="cuda")
+    @torch.autocast(enabled=False, device_type="xpu")
     def flush(self, stream_state: VocoderStreamState) -> torch.Tensor:
         with measure_inference("vocoder", phase="stream_flush"):
             audio_window = self._decode_stream_window(stream_state.decoder.window)

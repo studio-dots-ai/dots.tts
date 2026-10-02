@@ -20,6 +20,7 @@ from dots_tts.data.pipelines.tts_pipeline import (
 )
 from dots_tts.models.dots_tts.model import DotsTtsModel
 from dots_tts.utils.audio import high_quality_resample
+from dots_tts.utils.device import resolve_device
 from dots_tts.utils.logging import categorized_log as logc
 from dots_tts.utils.profiling import (
     InferenceProfiler,
@@ -58,21 +59,22 @@ class RuntimeInputs(TypedDict, total=False):
 class DotsTtsRuntime:
     # region Lifecycle and pretrained loading
     @staticmethod
-    def _check_torch_env(precision: str) -> None:
+    def _check_torch_env(
+        precision: str, device: str | torch.device | None = None
+    ) -> None:
         import warnings
 
-        if torch.cuda.is_available():
+        if resolve_device(device).type != "cpu":
             return
         msg = (
-            f"CUDA is not available; torch will run on CPU. "
-            f"(torch was built for CUDA {torch.version.cuda!r}.) "
-            f"If your machine has a GPU, install a torch build matching your "
-            f"CUDA driver from https://pytorch.org/get-started/locally/."
+            "The runtime is using CPU. For GPU inference, install a PyTorch build "
+            "matching your CUDA or Intel XPU device from "
+            "https://pytorch.org/get-started/locally/."
         )
-        if precision.lower() in {"bfloat16", "float16", "fp16", "bf16"}:
+        if get_dtype(precision) in {torch.bfloat16, torch.float16}:
             raise RuntimeError(
                 f"{msg} Half-precision ({precision}) is not reliable on CPU; "
-                f"install CUDA-matched torch or pass precision='float32'."
+                f"install GPU-enabled torch or pass precision='float32'."
             )
         warnings.warn(msg, stacklevel=2)
 
@@ -82,20 +84,19 @@ class DotsTtsRuntime:
         pretrained_path: Path,
         *,
         precision: str = "bfloat16",
+        device: str | torch.device | None = None,
         optimize: bool = False,
         max_generate_length: int = 500,
         max_sequence_length: int = DEFAULT_MAX_SEQUENCE_LENGTH,
         vocoder_merge_steps: int = 4,
         warmup_on_optimize: bool = True,
     ):
-        self._check_torch_env(precision)
+        self.device = resolve_device(device)
+        self._check_torch_env(precision, self.device)
         self.model = model
         self.pretrained_path = pretrained_path
         self.precision = precision
-        if torch.cuda.is_available():
-            self.device = torch.device("cuda")
-        else:
-            self.device = torch.device("cpu")
+        if self.device.type == "cpu":
             torch.set_num_threads(1)
         if self.device.type == "cuda" and self.precision.lower() in {
             "fp32",
@@ -151,6 +152,7 @@ class DotsTtsRuntime:
         revision: str | None = None,
         cache_dir: str | None = None,
         precision: str = "bfloat16",
+        device: str | torch.device | None = None,
         optimize: bool = False,
         max_generate_length: int = 500,
         max_sequence_length: int = DEFAULT_MAX_SEQUENCE_LENGTH,
@@ -181,6 +183,7 @@ class DotsTtsRuntime:
             model=loaded_model,
             pretrained_path=pretrained_path,
             precision=precision,
+            device=device,
             optimize=optimize,
             max_generate_length=max_generate_length,
             max_sequence_length=max_sequence_length,
