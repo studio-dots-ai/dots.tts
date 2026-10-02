@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from pathlib import Path
 from typing import Any, Iterator, TypedDict
 
 import torch
@@ -17,11 +16,16 @@ from dots_tts.data.edit_instruction import (
 )
 from dots_tts.data.pipelines.tokenizing import build_edit_generation_schedule
 from dots_tts.models.dots_tts.edit_model import DotsTtsEditModel
-from dots_tts.runtime import DEFAULT_MAX_SEQUENCE_LENGTH, DotsTtsRuntime
+from dots_tts.runtime import DEFAULT_MAX_SEQUENCE_LENGTH, DotsTtsRuntime, RuntimeInputs
 from dots_tts.utils.audio import prepare_edit_source_audio
 from dots_tts.utils.logging import categorized_log as logc
-from dots_tts.utils.profiling import inference_profiling, log_inference_profile
-
+from dots_tts.utils.profiling import (
+    InferenceProfiler,
+    activate_inference_profiler,
+    inference_profiling,
+    log_inference_profile,
+)
+from dots_tts.utils.text import attach_language_tag
 
 EDIT_SOURCE_TEXT_PREFIX = "[原文本]"
 EDIT_SOURCE_AUDIO_PREFIX = "[原语音]"
@@ -64,6 +68,7 @@ class DotsTtsEditRuntime(DotsTtsRuntime):
         revision: str | None = None,
         cache_dir: str | None = None,
         precision: str = "bfloat16",
+        device: str | torch.device | None = None,
         optimize: bool = False,
         max_generate_length: int = 500,
         max_sequence_length: int = DEFAULT_MAX_SEQUENCE_LENGTH,
@@ -94,6 +99,7 @@ class DotsTtsEditRuntime(DotsTtsRuntime):
             model=loaded_model,
             pretrained_path=pretrained_path,
             precision=precision,
+            device=device,
             optimize=optimize,
             max_generate_length=max_generate_length,
             max_sequence_length=max_sequence_length,

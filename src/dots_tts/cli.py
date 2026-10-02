@@ -24,6 +24,11 @@ def parse_args(argv=None):
         "--precision", type=str, default="bfloat16", help="Inference precision"
     )
     parser.add_argument(
+        "--device",
+        default="auto",
+        help="Inference device: auto, cpu, cuda[:index], or xpu[:index]",
+    )
+    parser.add_argument(
         "--seed",
         type=int,
         default=42,
@@ -129,6 +134,7 @@ def main(argv=None):
             revision=args.revision,
             cache_dir=args.cache_dir,
             precision=args.precision,
+            device=args.device,
             max_generate_length=args.max_generate_length,
             max_sequence_length=args.max_sequence_length,
         )

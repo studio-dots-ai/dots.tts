@@ -27,6 +27,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--revision", default=None)
     parser.add_argument("--cache-dir", default=None)
     parser.add_argument("--precision", default="bfloat16")
+    parser.add_argument(
+        "--device",
+        default="auto",
+        help="Inference device: auto, cpu, cuda[:index], or xpu[:index]",
+    )
     parser.add_argument("--optimize", action="store_true")
     parser.add_argument("--max-generate-length", type=int, default=500)
     parser.add_argument("--max-sequence-length", type=int, default=2048)
@@ -78,6 +83,7 @@ def main(argv: list[str] | None = None) -> None:
         revision=args.revision,
         cache_dir=args.cache_dir,
         precision=args.precision,
+        device=args.device,
         optimize=args.optimize,
         max_generate_length=args.max_generate_length,
         max_sequence_length=args.max_sequence_length,
