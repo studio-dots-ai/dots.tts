@@ -220,7 +220,7 @@ class MeanFlowDotsTtsModel(nn.Module):
         latent_patch_size = int(prefix_data["latent_patch_size"])
         anchor_mask = delta_t.float() == 0
 
-        autocast_device = "cuda" if device.type == "cuda" else "cpu"
+        autocast_device = device.type if device.type in {"cuda", "xpu"} else "cpu"
         with torch.autocast(device_type=autocast_device, enabled=False):
             z = xt.float()
             cur_t = t.float()

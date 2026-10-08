@@ -182,6 +182,7 @@ class SpeakerXVectorFeatures(nn.Module):
 
     @torch.no_grad()
     @torch.autocast(enabled=False, device_type="cuda")
+    @torch.autocast(enabled=False, device_type="xpu")
     def forward(
         self, audio, audio_lengths=None, fbank=None, fbank_lengths=None, **_kwargs
     ):

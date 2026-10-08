@@ -116,6 +116,8 @@ class InferenceProfiler:
     def _sync(self) -> None:
         if self._device.type == "cuda":
             torch.cuda.synchronize(self._device)
+        elif self._device.type == "xpu":
+            torch.xpu.synchronize(self._device)
 
     def _log_call(
         self,

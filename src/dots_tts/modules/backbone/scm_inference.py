@@ -211,7 +211,7 @@ class SCMDiTSolver(DiTSolver):
         if key not in self._backend_by_device_type:
             self._backend_by_device_type[key] = _resolve_kv_attention_backend(
                 optimize=self.optimize,
-                on_cuda=key == "cuda",
+                device_type=key,
                 default_backend="sdpa",
             )
         return self._backend_by_device_type[key]

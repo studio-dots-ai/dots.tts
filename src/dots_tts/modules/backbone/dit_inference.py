@@ -1240,23 +1240,24 @@ class EagerDiTRunner:
 
 
 def _resolve_kv_attention_backend(
-    *, optimize: bool, on_cuda: bool, default_backend: str | None = None
+    *, optimize: bool, device_type: str, default_backend: str | None = None
 ) -> str:
     """Pick the KV-cache attention backend (flex vs sdpa) from env / device."""
     if not optimize:
         return "sdpa"
+    supports_flex = device_type in {"cuda", "xpu"}
     env = os.environ.get("DOTS_TTS_DELAYED_DIT_BACKEND")
     if env is None:
         if default_backend is None:
-            return "flex" if on_cuda else "sdpa"
+            return "flex" if supports_flex else "sdpa"
         env = default_backend
     env = env.lower()
     if env not in {"sdpa", "flex"}:
         raise ValueError(
             f"DOTS_TTS_DELAYED_DIT_BACKEND must be 'sdpa' or 'flex', got {env!r}."
         )
-    if env == "flex" and not on_cuda:
-        raise ValueError("KV cache Flex attention backend requires CUDA.")
+    if env == "flex" and not supports_flex:
+        raise ValueError("KV cache Flex attention backend requires CUDA or XPU.")
     return env
 
 
@@ -1302,7 +1303,7 @@ class DiTSolver:
         key = device.type
         if key not in self._backend_by_device_type:
             self._backend_by_device_type[key] = _resolve_kv_attention_backend(
-                optimize=self.optimize, on_cuda=(key == "cuda")
+                optimize=self.optimize, device_type=key
             )
         return self._backend_by_device_type[key]
 
@@ -1311,7 +1312,7 @@ class DiTSolver:
     ) -> CachedDiTRunner:
         backend = self._backend_for(device)
         capacity_tokens = int(capacity_patches) * self.context.unit_len
-        compile_step = bool(self.optimize and device.type == "cuda")
+        compile_step = bool(self.optimize and device.type in {"cuda", "xpu"})
         key = (int(capacity_patches), str(device), dtype, backend, compile_step)
         runner = self._cached_runners.get(key)
         if runner is None:

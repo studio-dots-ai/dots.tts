@@ -254,7 +254,9 @@ class LLMInference:
         )
         token_step = self._get_static_token_step(
             signature=signature,
-            compile_step=bool(optimize and inputs_embeds.device.type == "cuda"),
+            compile_step=bool(
+                optimize and inputs_embeds.device.type in {"cuda", "xpu"}
+            ),
         )
         self._ensure_sequence_capacity(
             state,
