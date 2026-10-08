@@ -773,7 +773,7 @@ If you find dots.tts or dots.tts.edit useful, please consider citing the corresp
 
 @article{wang2026dotsttsedit,
   title         = {dots.tts.edit: Precisely Controlled Speech Editing with a Continuous Autoregressive Model},
-  author        = {Wang, Hankun and Li, Bohan and Lian, Shi and Gu, Xiaoyu and Peng, Jing and Zheng, Da and Zhang, Colin and Yu, Kai},
+  author        = {Wang, Hankun and Li, Bohan and Lian, Shi and Gu, Xiaoyu and Peng, Jing and Zheng, Da and Guo, Yiwei and Zhang, Colin and Wang, Shuai and Yu, Kai},
   year          = {2026},
   eprint        = {2608.02673},
   archivePrefix = {arXiv},
