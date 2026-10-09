@@ -792,3 +792,55 @@ dots.tts code and released checkpoints are licensed under [Apache-2.0](LICENSE).
 - [HoliTok](https://github.com/bovod-sjtu/HoliTok) — for the AudioVAE design.
 - [BigVGAN](https://github.com/NVIDIA/BigVGAN) — for the vocoder design.
 - [CAM++](https://github.com/alibaba-damo-academy/3D-Speaker) — for speaker x-vector encoder.
+
+## 📝 Examples
+
+### Detailed Usage Examples
+
+Here are some detailed examples of how to use the `dots.tts` package effectively:
+
+#### Example 1: Basic Voice Cloning
+To clone a voice using the `dots.tts` CLI, you can run the following command:
+
+```bash
+dots.tts \
+  --model-name-or-path rednote-hilab/dots.tts-soar \
+  --text "Hello, this is a voice cloning demonstration." \
+  --prompt-audio /path/to/reference.wav \
+  --prompt-text "The exact transcript of the reference audio." \
+  --num-steps 10 \
+  --output clone.wav
+```
+
+#### Example 2: Streaming Audio Generation
+For low-latency playback or streaming, use the `generate_stream` method in Python:
+
+```python
+import torch
+
+stream = runtime.generate_stream(
+    text="Hello, this is a streaming speech synthesis test.",
+    prompt_audio_path="/path/to/reference.wav",
+    prompt_text="The exact transcript of the reference audio.",
+    num_steps=10,
+    guidance_scale=1.2,
+)
+
+chunks = []
+for chunk in stream:
+    chunks.append(chunk.detach().float().cpu())
+
+audio = torch.cat(chunks, dim=-1).squeeze().numpy()
+sf.write("output_stream.wav", audio, runtime.sample_rate)
+```
+
+### 🤔 Frequently Asked Questions (FAQ)
+
+#### Q1: What is the recommended audio sample rate for training?
+A1: The recommended audio sample rate for training is 48 kHz.
+
+#### Q2: How can I contribute to this project?
+A2: Contributions are welcome! Please check the `CONTRIBUTING.md` file for guidelines on how to contribute.
+
+#### Q3: Where can I find the pretrained models?
+A3: Pretrained models can be found on the Hugging Face model hub under the `rednote-hilab` organization.
