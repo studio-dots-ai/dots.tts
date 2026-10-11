@@ -487,7 +487,7 @@ class DotsTtsRuntime:
         if normalized_language is None:
             raise ValueError(
                 f"Unsupported language={language!r}. "
-                "Expected 'none', 'auto_detect', or a valid language code/name."
+                "Expected 'none', 'auto_detect', or a valid language code/name. Supported languages include: 'EN', 'ZH', etc."
             )
         return normalized_language
 
