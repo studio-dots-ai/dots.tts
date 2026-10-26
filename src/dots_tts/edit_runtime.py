@@ -20,7 +20,12 @@ from dots_tts.models.dots_tts.edit_model import DotsTtsEditModel
 from dots_tts.runtime import DEFAULT_MAX_SEQUENCE_LENGTH, DotsTtsRuntime
 from dots_tts.utils.audio import prepare_edit_source_audio
 from dots_tts.utils.logging import categorized_log as logc
-from dots_tts.utils.profiling import inference_profiling, log_inference_profile
+from dots_tts.utils.profiling import (
+    InferenceProfiler,
+    activate_inference_profiler,
+    inference_profiling,
+    log_inference_profile,
+)
 
 
 EDIT_SOURCE_TEXT_PREFIX = "[原文本]"

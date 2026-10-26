@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AudioWaveform, ChartNoAxesColumnIncreasing, GripVertical, MoreHorizontal, Pause, Play, Upload } from "lucide-react";
+import { AudioWaveform, ChartNoAxesColumnIncreasing, Download, GripVertical, MoreHorizontal, Pause, Play, Upload } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import Spectrogram from "wavesurfer.js/plugins/spectrogram";
 import type { Destination } from "../types";
@@ -26,6 +26,7 @@ interface AudioCardProps {
   destination?: Destination;
   draggableAudio?: boolean;
   headerActions?: ReactNode;
+  downloadFilename?: string;
 }
 
 export const DRAG_TYPE = "application/x-dots-audio";
@@ -339,6 +340,7 @@ export function AudioCard({
   destination,
   draggableAudio = true,
   headerActions,
+  downloadFilename,
 }: AudioCardProps) {
   const [mode, setMode] = useState<VisualizationMode>("waveform");
   const [visualizationAvailable, setVisualizationAvailable] = useState(true);
@@ -376,6 +378,7 @@ export function AudioCard({
               </button>
             </>
           )}
+          {data && downloadFilename && <a className="icon-button" href={data.audioUrl} download={downloadFilename} aria-label={`Download ${title}`} title={`Download ${title}`}><Download size={15} /></a>}
           {data && <ServeMenu source={data.sourceId} destination={destination} onRoute={onRoute} />}
         </div>
       </header>

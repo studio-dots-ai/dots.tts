@@ -1,8 +1,8 @@
-# DotsTTS Edit Playground
+# dots.tts.edit Playground
 
-The Edit Playground is a local React application served by the Python backend
-in this directory. Its generated `frontend/dist` bundle is not tracked; build
-it from the committed TypeScript source before launching the application.
+The dots.tts.edit Playground is a local React application served by the Python
+backend in this directory. Build its `frontend/dist` bundle from the committed
+TypeScript source before launching the application.
 
 ## Build the frontend
 

@@ -88,8 +88,8 @@ describe("Studio layout", () => {
     );
     expect(paperLink.querySelector("img")).not.toBeNull();
     const note = screen.getByRole("note");
-    expect(note).toHaveTextContent("avoid applying multiple edits to short utterances");
-    expect(note).toHaveTextContent("避免在较短语音中实施多处编辑");
+    expect(note).toHaveTextContent("please keep the transcript accurate");
+    expect(note).toHaveTextContent("请确保转录准确");
   });
 
   it("shows and remembers dismissal of the source transcript hint", async () => {
@@ -153,7 +153,7 @@ describe("Studio layout", () => {
         : editSnapshot,
     })));
     const { container } = render(<App />);
-    const noise = await screen.findByRole("button", { name: "Add background noise to Source Segment" });
+    const noise = await screen.findByRole("button", { name: "Add background noise to Full Source Audio" });
     expect(screen.queryByRole("button", { name: "Choose audio" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /Insert audio/ })).toHaveLength(2);
     expect(container.querySelector('input[type="file"]')).not.toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { AudioReference } from "../types";
 import { classifySegmentDrop, segmentDropIntent, SourceAudioTimeline } from "./SourceAudioTimeline";
@@ -77,13 +77,13 @@ describe("SourceAudioTimeline", () => {
     expect(() => getAllByRole("button", { name: /Insert audio/ })).toThrow();
   });
 
-  it("opens one background noise control on the single source segment", () => {
+  it("shows a mixed full source above the clean segment after adding noise", () => {
     const onNoise = vi.fn();
     const noisy = {
       ...reference,
       noise: { item_id: "ambient", kind: "presets" as const, snr_db: 15 },
     };
-    const { getByRole } = render(
+    const { getByRole, getByText } = render(
       <SourceAudioTimeline
         reference={noisy}
         renderTranscript={(id) => <div>{id} transcript</div>}
@@ -100,12 +100,18 @@ describe("SourceAudioTimeline", () => {
         onEnhanceToggle={() => {}}
       />,
     );
+    const fullSource = getByText("Full Source Audio").closest<HTMLElement>(".audio-card")!;
+    const sourceSegment = getByText("Source Segment").closest<HTMLElement>(".audio-card")!;
+    expect(within(fullSource).getByRole("link", { name: "Download Full Source Audio" })).toHaveAttribute("href", "/source.wav");
+    expect(within(fullSource).getByRole("link", { name: "Download Full Source Audio" })).toHaveAttribute("download", "dots-tts-source-audio.wav");
+    expect(within(sourceSegment).getByRole("link", { name: "Download Source Segment" })).toHaveAttribute("href", "/first.wav");
+    expect(within(sourceSegment).getByRole("link", { name: "Download Source Segment" })).toHaveAttribute("download", "dots-tts-source-segment-1.wav");
+    expect(within(sourceSegment).queryByRole("button", { name: /background noise/ })).not.toBeInTheDocument();
     fireEvent.click(getByRole("button", { name: "Edit background noise, 15 dB" }));
     expect(onNoise).toHaveBeenCalledWith();
-    expect(() => getByRole("button", { name: /Segment.*background noise/ })).toThrow();
   });
 
-  it("keeps the hint, Noise, and Enhance on the segment when there is only one", () => {
+  it("keeps one clean card and full-source controls before a single segment is mixed", () => {
     const onEnhanceToggle = vi.fn();
     const { getByText, getByRole } = render(
       <SourceAudioTimeline
@@ -126,7 +132,9 @@ describe("SourceAudioTimeline", () => {
       />,
     );
     expect(() => getByText("Full Source Audio")).toThrow();
-    expect(getByRole("button", { name: "Add background noise to Source Segment" })).toBeInTheDocument();
+    expect(getByRole("button", { name: "Add background noise to Full Source Audio" })).toBeInTheDocument();
+    expect(getByRole("link", { name: "Download Source Segment" })).toHaveAttribute("href", "/first.wav");
+    expect(getByRole("link", { name: "Download Source Segment" })).toHaveAttribute("download", "dots-tts-source-segment-1.wav");
     expect(getByText("Global transcript hint")).toBeInTheDocument();
     fireEvent.click(getByRole("button", { name: "Enhance" }));
     expect(onEnhanceToggle).toHaveBeenCalledOnce();
