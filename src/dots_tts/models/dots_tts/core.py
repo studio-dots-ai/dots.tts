@@ -732,10 +732,12 @@ class IOHelper:
         return x
 
     def denormalize(self, x):
+        """Restore physical-space latents in FP32 for the audio decoder."""
+        x = x.float()
         if self.global_mean is not None and self.global_var is not None:
-            x = x * torch.sqrt(self.global_var.to(x.device)) + self.global_mean.to(
-                x.device
-            )
+            mean = self.global_mean.to(device=x.device, dtype=torch.float32)
+            var = self.global_var.to(device=x.device, dtype=torch.float32)
+            x = x * torch.sqrt(var) + mean
         return x
 
     @staticmethod

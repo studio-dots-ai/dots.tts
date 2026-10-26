@@ -962,9 +962,11 @@ class DotsTtsModel(nn.Module):
                 if already_normalized
                 else self.core.io_helper.normalize(latents)
             )
-        return (
-            self.core.io_helper.denormalize(latents) if already_normalized else latents
-        )
+        if already_normalized:
+            return self.core.io_helper.denormalize(latents).to(
+                dtype=self.core.patch_encoder.input_dtype
+            )
+        return latents
 
     def _prefill_prompt_latents(
         self,
