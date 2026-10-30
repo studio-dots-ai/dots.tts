@@ -30,6 +30,8 @@ dots.tts achieves the best average performance on **Seed-TTS-Eval**, with WERs o
 
 * **[2026.10]** 🔥 We’ve released **dots.tts.edit V1.1** ([Model](https://huggingface.co/dots-studio/dots.tts.edit) · [Paper](https://arxiv.org/abs/2608.02673) · [Demo](https://huggingface.co/spaces/dots-studio/dots.tts.edit-demo)) with free-form style editing capability and improved prosody and emotion editing performance. Across various categories, including text, emotion, and prosody editing, dots.tts.edit achieves **state-of-the-art performance** on both instruction following and local preservation. Take the [new model](https://dots-studio-dots-tts-edit.hf.space/) for a spin!
 
+<p align="center"><a href="https://dots-studio-dots-tts-edit-demo.static.hf.space/assets/dots-tts-edit-v1_1.mp4"><img src="assets/promotion-poster.jpg" alt="Watch the dots.tts.edit video" width="24%" /></a><br/>↑ Watch the video</p>
+
 * **[2026.10]** 🛠️ We’ve open-sourced our [Data Pipeline](https://github.com/studio-dots-ai/dots.tts.edit-data-pipeline) for producing training data for our precise speech editing model **dots.tts.edit**!
 
 * **[2026.09]** 🔥 Released **doteBench V1.0**, an XML-first bilingual benchmark for precise speech editing. Its 2,081 English and Chinese cases cover text, emotion, prosody, pause, and compositional edits, evaluating instruction following, local preservation, and audio quality. [Code](https://github.com/studio-dots-ai/doteBench) · [Release](https://github.com/studio-dots-ai/doteBench/releases) · [Paper](https://arxiv.org/abs/2608.02673).
