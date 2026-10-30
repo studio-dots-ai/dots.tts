@@ -30,7 +30,7 @@ const health = {
   warmup: "complete" as const,
   max_generate_length: 512,
   uploads_enabled: true,
-  demo_url: "https://dots-studio-dots-tts-edit-demo.static.hf.space",
+  demo_url: "https://huggingface.co/spaces/dots-studio/dots.tts.edit-demo",
   paper_url: "https://arxiv.org/abs/2608.02673",
 };
 const editSegment = { id: "segment-1", source_id: "segment-1", audio_url: "/source.wav", transcript: "A😀 source", duration_seconds: 2, revision_id: null, multiple_speakers: false, allow_xvector: true };
@@ -78,7 +78,7 @@ describe("Studio layout", () => {
     const demoLink = await screen.findByRole("link", { name: "Demo" });
     expect(demoLink).toHaveAttribute(
       "href",
-      "https://dots-studio-dots-tts-edit-demo.static.hf.space",
+      "https://huggingface.co/spaces/dots-studio/dots.tts.edit-demo",
     );
     expect(demoLink.querySelector("svg")).not.toBeNull();
     const paperLink = screen.getByRole("link", { name: "arXiv Paper" });
@@ -88,8 +88,8 @@ describe("Studio layout", () => {
     );
     expect(paperLink.querySelector("img")).not.toBeNull();
     const note = screen.getByRole("note");
-    expect(note).toHaveTextContent("avoid applying multiple edits to short utterances");
-    expect(note).toHaveTextContent("避免在较短语音中实施多处编辑");
+    expect(note).toHaveTextContent("please keep the transcript accurate");
+    expect(note).toHaveTextContent("请确保转录准确");
   });
 
   it("shows and remembers dismissal of the source transcript hint", async () => {
@@ -153,7 +153,7 @@ describe("Studio layout", () => {
         : editSnapshot,
     })));
     const { container } = render(<App />);
-    const noise = await screen.findByRole("button", { name: "Add background noise to Source Segment" });
+    const noise = await screen.findByRole("button", { name: "Add background noise to Full Source Audio" });
     expect(screen.queryByRole("button", { name: "Choose audio" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /Insert audio/ })).toHaveLength(2);
     expect(container.querySelector('input[type="file"]')).not.toBeInTheDocument();

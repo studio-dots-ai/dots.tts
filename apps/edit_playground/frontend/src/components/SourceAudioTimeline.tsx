@@ -43,7 +43,8 @@ export function SourceAudioTimeline({ reference, onRoute, onInsert, onMove, onRe
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const canInsert = reference.segments.length < 3;
   const multipleSegments = reference.segments.length > 1;
-  const noiseButton = (scope: "Full Source Audio" | "Source Segment") => onNoise && <button className={`icon-button noise-button noise-button--global ${reference.noise ? "noise-button--active" : ""}`} aria-label={reference.noise ? `Edit background noise, ${reference.noise.snr_db} dB` : `Add background noise to ${scope}`} title={reference.noise ? `Noise · ${reference.noise.snr_db} dB` : "Add background noise"} onClick={() => onNoise()}>{!reference.noise && <span className="noise-button__plus">+</span>}<Wind size={15} />{reference.noise && <span>{reference.noise.snr_db}</span>}</button>;
+  const showFullSource = multipleSegments || Boolean(reference.noise);
+  const noiseButton = () => onNoise && <button className={`icon-button noise-button noise-button--global ${reference.noise ? "noise-button--active" : ""}`} aria-label={reference.noise ? `Edit background noise, ${reference.noise.snr_db} dB` : "Add background noise to Full Source Audio"} title={reference.noise ? `Noise · ${reference.noise.snr_db} dB` : "Add background noise"} onClick={() => onNoise()}>{!reference.noise && <span className="noise-button__plus">+</span>}<Wind size={15} />{reference.noise && <span>{reference.noise.snr_db}</span>}</button>;
   const sourceControls = <div className="source-global-controls"><button className={`enhance-operation ${enhance ? "enhance-operation--active" : ""}`} aria-pressed={enhance} onClick={onEnhanceToggle}><Wind size={13} /> Enhance</button><div className="segment-summary">{reference.segments.length} segment{reference.segments.length === 1 ? "" : "s"} · {reference.duration_seconds.toFixed(1)}s / 40s</div></div>;
   const dropAt = (event: React.DragEvent, index: number) => {
     event.preventDefault(); event.stopPropagation(); setDropTarget(null);
@@ -57,7 +58,7 @@ export function SourceAudioTimeline({ reference, onRoute, onInsert, onMove, onRe
   ) : null;
   return (
     <div className="source-audio-timeline">
-      {multipleSegments && <AudioCard title="Full Source Audio" data={{ sourceId: "edit_source", audioUrl: reference.audio_url, text: reference.text }} destination="edit_source" onUpload={uploadsEnabled ? onUploadWhole : undefined} onRoute={onRoute} headerActions={noiseButton("Full Source Audio")} />}
+      {showFullSource && <AudioCard title="Full Source Audio" data={{ sourceId: "edit_source", audioUrl: reference.audio_url, text: reference.text }} destination="edit_source" onUpload={uploadsEnabled ? onUploadWhole : undefined} onRoute={onRoute} headerActions={noiseButton()} downloadFilename="dots-tts-source-audio.wav" />}
       {multipleSegments && globalHint}
       <div className="segments-strip">
         {gap(0)}
@@ -94,7 +95,7 @@ export function SourceAudioTimeline({ reference, onRoute, onInsert, onMove, onRe
           }}
         >
           {reference.segments.length > 1 && <div className="segment-left-actions"><span className="segment-grip" draggable onDragStart={(event) => { event.dataTransfer.effectAllowed = "copyMove"; event.dataTransfer.setData(SEGMENT_DRAG_TYPE, segment.id); event.dataTransfer.setData(DRAG_TYPE, segment.source_id); }} aria-label={`Move Segment ${index + 1}`}><GripVertical size={14} /></span><button className="icon-button" aria-label={`Remove Segment ${index + 1}`} onClick={() => onRemove(segment.id)}><X size={14} /></button></div>}
-          <AudioCard title={reference.segments.length === 1 ? "Source Segment" : `Segment ${index + 1}`} data={{ sourceId: segment.source_id, audioUrl: segment.audio_url, text: segment.transcript }} destination="edit_source" draggableAudio={reference.segments.length === 1} onUpload={uploadsEnabled ? (reference.segments.length === 1 ? onUploadWhole : (file) => onUploadReplace(segment.id, file)) : undefined} onRoute={onRoute} headerActions={!multipleSegments ? noiseButton("Source Segment") : undefined} />
+          <AudioCard title={reference.segments.length === 1 ? "Source Segment" : `Segment ${index + 1}`} data={{ sourceId: segment.source_id, audioUrl: segment.audio_url, text: segment.transcript }} destination="edit_source" draggableAudio={reference.segments.length === 1} onUpload={uploadsEnabled ? (reference.segments.length === 1 ? onUploadWhole : (file) => onUploadReplace(segment.id, file)) : undefined} onRoute={onRoute} headerActions={!showFullSource ? noiseButton() : undefined} downloadFilename={`dots-tts-source-segment-${index + 1}.wav`} />
           </div>
           {!multipleSegments && globalHint}
           <div className="segment-transcript">{renderTranscript(segment.id, index)}</div>

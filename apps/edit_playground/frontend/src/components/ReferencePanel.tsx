@@ -93,6 +93,7 @@ export function ReferencePanel({
         destination={destination}
         onUpload={uploadsEnabled ? onUpload : undefined}
         onRoute={onRoute}
+        downloadFilename={destination === "prompt" ? "dots-tts-prompt-audio.wav" : "dots-tts-source-audio.wav"}
       />}
       {children}
     </ReferenceDropZone>

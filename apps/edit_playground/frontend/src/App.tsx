@@ -380,8 +380,8 @@ export default function App() {
       <div className="usage-note" role="note">
         <span className="usage-note__icon" aria-hidden="true">💡</span>
         <div className="usage-note__copy">
-          <p>Test version. Results may change in the official release. For better results, avoid applying multiple edits to short utterances and keep the transcript accurate.</p>
-          <p lang="zh">当前为测试版本，正式发布后的效果可能会有变化。为获得更好的效果，请避免在较短语音中实施多处编辑，并确保转录准确。</p>
+          <p>For better results, please keep the transcript accurate.</p>
+          <p lang="zh">为获得更好的效果，请确保转录准确。</p>
         </div>
       </div>
       <div data-tour="latest-results"><GenerationTransport busy={busy} status={status} title={snapshot?.latest?.metadata.kind === "edit" ? "Latest Edit" : "Latest Result"} data={latestData(snapshot)} onRoute={route} /></div>
