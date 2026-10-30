@@ -30,7 +30,7 @@ const health = {
   warmup: "complete" as const,
   max_generate_length: 512,
   uploads_enabled: true,
-  demo_url: "https://dots-studio-dots-tts-edit-demo.static.hf.space",
+  demo_url: "https://huggingface.co/spaces/dots-studio/dots.tts.edit-demo",
   paper_url: "https://arxiv.org/abs/2608.02673",
 };
 const editSegment = { id: "segment-1", source_id: "segment-1", audio_url: "/source.wav", transcript: "A😀 source", duration_seconds: 2, revision_id: null, multiple_speakers: false, allow_xvector: true };
@@ -78,7 +78,7 @@ describe("Studio layout", () => {
     const demoLink = await screen.findByRole("link", { name: "Demo" });
     expect(demoLink).toHaveAttribute(
       "href",
-      "https://dots-studio-dots-tts-edit-demo.static.hf.space",
+      "https://huggingface.co/spaces/dots-studio/dots.tts.edit-demo",
     );
     expect(demoLink.querySelector("svg")).not.toBeNull();
     const paperLink = screen.getByRole("link", { name: "arXiv Paper" });

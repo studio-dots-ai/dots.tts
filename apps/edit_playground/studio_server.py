@@ -1635,7 +1635,7 @@ def create_studio_app(
                 "uploads_enabled": uploads_enabled,
                 "demo_url": os.environ.get(
                     "DOTS_TTS_DEMO_URL",
-                    "https://dots-studio-dots-tts-edit-demo.static.hf.space",
+                    "https://huggingface.co/spaces/dots-studio/dots.tts.edit-demo",
                 ),
                 "paper_url": os.environ.get(
                     "DOTS_TTS_PAPER_URL",
