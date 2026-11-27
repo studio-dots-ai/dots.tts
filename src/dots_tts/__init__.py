@@ -30,9 +30,11 @@ def _check_torch_install() -> None:
         "--index-url https://download.pytorch.org/whl/cu128"
     )
 
-    torch_minor = tuple(torch_version.split("+")[0].split(".")[:2])
-    torchaudio_minor = tuple(torchaudio_version.split("+")[0].split(".")[:2])
-    if torch_minor != torchaudio_minor:
+    torch_minor = tuple(map(int, torch_version.split("+")[0].split(".")[:2]))
+    torchaudio_minor = tuple(map(int, torchaudio_version.split("+")[0].split(".")[:2]))
+    # TorchAudio 2.11 uses the stable ABI available in PyTorch 2.11 and later.
+    stable_torchaudio_abi = torchaudio_minor == (2, 11) and torch_minor >= (2, 11)
+    if torch_minor != torchaudio_minor and not stable_torchaudio_abi:
         raise RuntimeError(
             f"torch ({torch_version}) and torchaudio ({torchaudio_version}) "
             f"minor versions do not match.\n{_install_hint}"
